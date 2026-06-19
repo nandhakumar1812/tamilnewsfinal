@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="தமிழ் மீடியா - தமிழ்நாட்டின் முன்னணி செய்தி தளம். அரசியல், விளையாட்டு, சினிமா, தொழில்நுட்பம் மற்றும் பலவற்றை படிக்கவும்."/>
+  <meta property="og:title" content="தமிழ் மீடியா"/>
+  <meta property="og:description" content="தமிழ்நாட்டின் முன்னணி டிஜிட்டல் செய்தி தளம்"/>
+  <meta property="og:type" content="website"/>
+  <title>தமிழ் மீடியா – Tamil Media</title>
+
+  <!-- Firebase SDKs (Free – no credit card needed) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+/* ============================================================
+   RESET & ROOT VARIABLES
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#CC0000;--red-dark:#990000;--navy:#1A1A2E;--orange:#E85D04;
+  --white:#FFFFFF;--gray-50:#FAFAFA;--gray-100:#F5F5F5;--gray-200:#E8E8E8;
+  --gray-400:#AAAAAA;--gray-600:#555;--gray-800:#1E1E1E;
+  --font-head:Georgia,'Times New Roman',serif;
+  --font-body:'Segoe UI',Arial,sans-serif;
+  --shadow-sm:0 1px 6px rgba(0,0,0,0.08);
+  --shadow-md:0 4px 20px rgba(0,0,0,0.14);
+  --shadow-lg:0 12px 48px rgba(0,0,0,0.22);
+  --radius:8px;--tr:0.2s ease;
+  /* Category colors */
+  --c-tn:#CC0000;--c-in:#E25000;--c-wl:#1E6B7C;--c-bz:#B84A00;
+  --c-sp:#1A6B3A;--c-cn:#7B2D8B;--c-tc:#004EA8;--c-po:#7A0000;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--gray-100);color:var(--gray-800);font-size:15px;line-height:1.65}
+a{text-decoration:none;color:inherit}
+img{max-width:100%;display:block}
+button{cursor:pointer;border:none;font-family:var(--font-body);background:none}
+
+/* ============================================================
+   LOADER OVERLAY
+   ============================================================ */
+#page-loader{position:fixed;inset:0;background:var(--white);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s}
+#page-loader.hide{opacity:0;pointer-events:none}
+.loader-logo{font-family:var(--font-head);font-size:28px;color:var(--navy);font-weight:bold}
+.loader-logo span{color:var(--red)}
+.loader-bar{width:160px;height:4px;background:var(--gray-200);border-radius:2px;overflow:hidden}
+.loader-fill{height:100%;background:var(--red);animation:loaderPulse 1.2s ease-in-out infinite}
+@keyframes loaderPulse{0%{width:0}60%{width:100%}100%{width:100%}}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+#top-bar{background:var(--navy);color:#bbb;font-size:12px;padding:5px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.top-links a{color:#bbb;margin-left:14px;transition:color var(--tr)}
+.top-links a:hover{color:#fff}
+#top-bar .live-dot{display:inline-block;width:7px;height:7px;background:#22c55e;border-radius:50%;animation:blink 1.4s infinite;margin-right:5px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+#site-header{background:var(--white);border-bottom:3px solid var(--red);position:sticky;top:0;z-index:800;box-shadow:var(--shadow-md)}
+.header-inner{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;height:68px}
+.logo-wrap{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo-icon{width:44px;height:44px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:bold;font-family:var(--font-head);flex-shrink:0}
+.logo-text{font-family:var(--font-head);font-size:22px;font-weight:bold;color:var(--navy);line-height:1.1}
+.logo-text span{display:block;font-size:10px;color:var(--red);font-family:var(--font-body);font-weight:normal;letter-spacing:2.5px;text-transform:uppercase}
+.search-wrap{display:flex;align-items:center;flex:1;max-width:380px;margin:0 auto}
+.search-wrap input{width:100%;padding:9px 14px;border:1.5px solid var(--gray-200);border-right:none;border-radius:var(--radius) 0 0 var(--radius);font-size:14px;outline:none;font-family:var(--font-body);transition:border-color var(--tr)}
+.search-wrap input:focus{border-color:var(--red)}
+.search-wrap button{padding:9px 14px;background:var(--red);color:#fff;border-radius:0 var(--radius) var(--radius) 0;font-size:15px;transition:background var(--tr)}
+.search-wrap button:hover{background:var(--red-dark)}
+#hamburger{display:none;flex-direction:column;gap:5px;padding:6px}
+#hamburger span{display:block;width:24px;height:2px;background:var(--navy);transition:all var(--tr)}
+.header-admin-btn{background:var(--navy);color:#fff;padding:8px 16px;border-radius:var(--radius);font-size:13px;font-weight:600;transition:background var(--tr);white-space:nowrap;display:none}
+.header-admin-btn.visible{display:inline-flex;align-items:center;gap:6px}
+.header-admin-btn:hover{background:#0d0d2e}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+#main-nav{background:var(--navy)}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;align-items:center}
+#nav-links{display:flex;list-style:none;flex-wrap:wrap}
+#nav-links li a{display:block;padding:12px 13px;color:#ccc;font-size:13.5px;font-weight:500;letter-spacing:.3px;transition:all var(--tr);position:relative}
+#nav-links li a::after{content:'';position:absolute;bottom:0;left:13px;right:13px;height:2px;background:var(--red);transform:scaleX(0);transition:transform var(--tr)}
+#nav-links li a:hover,#nav-links li a.active{color:#fff}
+#nav-links li a:hover::after,#nav-links li a.active::after{transform:scaleX(1)}
+
+/* ============================================================
+   BREAKING NEWS
+   ============================================================ */
+#breaking-bar{background:var(--red);display:flex;align-items:center;overflow:hidden;height:36px}
+.breaking-label{background:var(--red-dark);color:#fff;font-weight:bold;font-size:11.5px;padding:0 14px;height:100%;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;letter-spacing:1px;text-transform:uppercase;gap:6px}
+.ticker-wrap{flex:1;overflow:hidden;position:relative}
+.ticker-content{display:flex;white-space:nowrap;animation:ticker 45s linear infinite}
+.ticker-content:hover{animation-play-state:paused}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-item{color:#fff;font-size:13px;padding:0 28px}
+.ticker-sep{color:rgba(255,255,255,.45)}
+
+/* ============================================================
+   PAGE WRAP
+   ============================================================ */
+#page-wrap{max-width:1280px;margin:0 auto;padding:28px 20px}
+
+/* ============================================================
+   SEARCH RESULTS
+   ============================================================ */
+#search-results-wrap{display:none;margin-bottom:32px}
+#search-results-wrap h2{font-family:var(--font-head);font-size:19px;color:var(--navy);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--red)}
+#close-search{float:right;background:var(--gray-200);border-radius:50%;width:28px;height:28px;font-size:15px;color:var(--gray-600)}
+#close-search:hover{background:var(--gray-400);color:#fff}
+
+/* ============================================================
+   CATEGORY FILTER PILLS
+   ============================================================ */
+#cat-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.cat-pill{padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;border:2px solid var(--gray-200);color:var(--gray-600);transition:all var(--tr);background:var(--white)}
+.cat-pill:hover,.cat-pill.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* ============================================================
+   HERO SECTION
+   ============================================================ */
+#hero-section{margin-bottom:30px}
+.hero-card{position:relative;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-md);cursor:pointer;min-height:260px}
+.hero-card img{width:100%;height:420px;object-fit:cover;display:block;transition:transform .5s ease}
+.hero-card:hover img{transform:scale(1.03)}
+.hero-no-img{background:linear-gradient(135deg,var(--navy) 0%,#2A2A5E 60%,#1A1A3E 100%)}
+.hero-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,.9) 0%,rgba(0,0,0,.4) 60%,transparent 100%);padding:36px 32px 28px;color:#fff}
+.hero-overlay-text{position:relative;padding:40px 36px;color:#fff}
+.hero-badge{display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:bold;padding:3px 12px;border-radius:3px;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.hero-title{font-family:var(--font-head);font-size:26px;font-weight:bold;line-height:1.3;margin-bottom:10px;text-shadow:0 1px 4px rgba(0,0,0,.3)}
+.hero-desc{font-size:14px;color:rgba(255,255,255,.85);margin-bottom:8px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hero-meta-bar{display:flex;align-items:center;gap:16px;font-size:12px;color:rgba(255,255,255,.6);flex-wrap:wrap}
+
+/* ============================================================
+   CONTENT + SIDEBAR LAYOUT
+   ============================================================ */
+#content-sidebar{display:flex;gap:28px;align-items:flex-start}
+#main-content{flex:1;min-width:0}
+#sidebar{width:300px;flex-shrink:0}
+
+/* ============================================================
+   SECTION TITLES
+   ============================================================ */
+.section-title{font-family:var(--font-head);font-size:19px;font-weight:bold;color:var(--navy);margin-bottom:18px;padding-bottom:10px;border-bottom:3px solid var(--red);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.section-title .dot{width:8px;height:8px;background:var(--red);border-radius:50%;flex-shrink:0}
+.news-count-badge{font-size:11px;background:var(--gray-200);color:var(--gray-600);padding:2px 10px;border-radius:12px;font-family:var(--font-body);font-weight:normal;margin-left:auto}
+
+/* ============================================================
+   NEWS CARDS – TEXT ONLY (No images in cards)
+   ============================================================ */
+.news-section{margin-bottom:36px}
+.news-grid{display:flex;flex-wrap:wrap;gap:16px}
+
+.news-card{
+  background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-sm);
+  flex:1 1 280px;min-width:260px;cursor:pointer;
+  transition:box-shadow var(--tr),transform var(--tr);
+  display:flex;flex-direction:column;
+  border-left:4px solid var(--gray-200);overflow:hidden;
+  position:relative;
+}
+.news-card:hover{box-shadow:var(--shadow-md);transform:translateY(-3px)}
+
+/* Category border colors on left */
+.nc-tamilnadu{border-left-color:var(--c-tn)}
+.nc-india{border-left-color:var(--c-in)}
+.nc-world{border-left-color:var(--c-wl)}
+.nc-business{border-left-color:var(--c-bz)}
+.nc-sports{border-left-color:var(--c-sp)}
+.nc-cinema{border-left-color:var(--c-cn)}
+.nc-technology{border-left-color:var(--c-tc)}
+.nc-politics{border-left-color:var(--c-po)}
+
+.news-card-body{padding:16px 18px 16px;display:flex;flex-direction:column;flex:1}
+.card-top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px}
+
+.cat-badge{display:inline-block;font-size:10px;font-weight:bold;padding:3px 9px;border-radius:3px;letter-spacing:.8px;text-transform:uppercase;color:#fff}
+.cb-tamilnadu{background:var(--c-tn)}
+.cb-india{background:var(--c-in)}
+.cb-world{background:var(--c-wl)}
+.cb-business{background:var(--c-bz)}
+.cb-sports{background:var(--c-sp)}
+.cb-cinema{background:var(--c-cn)}
+.cb-technology{background:var(--c-tc)}
+.cb-politics{background:var(--c-po)}
+
+.delete-card-btn{background:#fff0f0;color:var(--red);border-radius:50%;width:26px;height:26px;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background var(--tr);flex-shrink:0;border:1px solid #fcc}
+.delete-card-btn:hover{background:var(--red);color:#fff}
+
+.news-card-title{font-family:var(--font-head);font-size:15.5px;font-weight:bold;color:var(--navy);line-height:1.45;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.news-card-desc{font-size:13px;color:var(--gray-600);line-height:1.6;flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px}
+
+.news-card-footer{margin-top:auto;padding-top:10px;border-top:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.news-card-date{font-size:11.5px;color:var(--gray-400);display:flex;align-items:center;gap:4px}
+.card-actions{display:flex;align-items:center;gap:8px}
+.share-card-btn{font-size:13px;color:var(--gray-400);transition:color var(--tr);padding:2px}
+.share-card-btn:hover{color:var(--navy)}
+.read-more{font-size:12px;color:var(--red);font-weight:700;transition:color var(--tr)}
+.news-card:hover .read-more{color:var(--red-dark)}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.empty-state{text-align:center;padding:60px 20px;color:var(--gray-400)}
+.empty-icon{font-size:52px;margin-bottom:12px}
+.empty-state h3{font-size:18px;color:var(--gray-600);margin-bottom:8px}
+.empty-state p{font-size:14px}
+.empty-state .setup-link{display:inline-block;margin-top:16px;background:var(--red);color:#fff;padding:10px 24px;border-radius:var(--radius);font-size:13px;font-weight:600}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar-box{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:18px;margin-bottom:22px}
+.sidebar-title{font-family:var(--font-head);font-size:16px;font-weight:bold;color:var(--navy);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--red)}
+.trending-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray-200);cursor:pointer;align-items:flex-start}
+.trending-item:last-child{border-bottom:none;padding-bottom:0}
+.trending-item:hover .trending-title{color:var(--red)}
+.trending-num{font-size:22px;font-weight:bold;color:var(--gray-200);font-family:var(--font-head);line-height:1;flex-shrink:0;width:28px}
+.trending-title{font-size:13px;color:var(--navy);line-height:1.4;font-weight:500;transition:color var(--tr)}
+.trending-date{font-size:11px;color:var(--gray-400);margin-top:3px}
+.ad-box{background:var(--gray-200);border:2px dashed var(--gray-400);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--gray-400);font-size:12px;text-align:center;padding:24px;min-height:200px}
+.ad-box-icon{font-size:28px}
+.newsletter-box{background:linear-gradient(135deg,var(--navy) 0%,#2d2d5e 100%);border-radius:var(--radius);padding:22px;color:#fff}
+.newsletter-box h3{font-family:var(--font-head);font-size:16px;margin-bottom:6px}
+.newsletter-box p{font-size:13px;color:rgba(255,255,255,.7);margin-bottom:14px}
+.newsletter-box input{width:100%;padding:9px 12px;border:none;border-radius:var(--radius) var(--radius) 0 0;font-size:13px;font-family:var(--font-body);outline:none}
+.newsletter-box button{width:100%;padding:9px;background:var(--red);color:#fff;font-size:13px;font-weight:bold;border-radius:0 0 var(--radius) var(--radius);transition:background var(--tr)}
+.newsletter-box button:hover{background:var(--red-dark)}
+#nl-success{margin-top:8px;font-size:12px;color:#7fdb97;display:none}
+
+/* ============================================================
+   ARTICLE MODAL
+   ============================================================ */
+#news-modal{display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:16px}
+#news-modal.open{display:flex}
+.modal-box{background:var(--white);border-radius:var(--radius);max-width:760px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modalIn .22s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-img{width:100%;height:280px;object-fit:cover;border-radius:var(--radius) var(--radius) 0 0}
+.modal-body{padding:26px 30px 32px}
+.modal-header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.modal-badge{display:inline-block;font-size:10px;font-weight:bold;padding:3px 12px;border-radius:3px;letter-spacing:1px;color:#fff;text-transform:uppercase}
+.modal-close{width:34px;height:34px;background:var(--gray-100);border-radius:50%;font-size:18px;color:var(--gray-600);display:flex;align-items:center;justify-content:center;transition:background var(--tr);flex-shrink:0}
+.modal-close:hover{background:var(--gray-200)}
+.modal-title{font-family:var(--font-head);font-size:23px;font-weight:bold;color:var(--navy);line-height:1.4;margin-bottom:10px}
+.modal-meta{font-size:12px;color:var(--gray-400);margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.modal-content-text{font-size:15px;line-height:1.85;color:var(--gray-800);white-space:pre-line}
+.modal-share-row{display:flex;gap:10px;margin-top:24px;padding-top:18px;border-top:1px solid var(--gray-200);flex-wrap:wrap}
+.modal-share-btn{padding:8px 18px;border-radius:var(--radius);font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;transition:all var(--tr)}
+.share-wa{background:#25D366;color:#fff}
+.share-wa:hover{background:#1da851}
+.share-copy{background:var(--gray-200);color:var(--gray-800)}
+.share-copy:hover{background:var(--gray-400)}
+.share-print{background:var(--navy);color:#fff}
+.share-print:hover{background:#0d0d2e}
+
+/* ============================================================
+   ADMIN LOGIN MODAL
+   ============================================================ */
+#admin-login-modal{display:none;position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:20px}
+#admin-login-modal.open{display:flex}
+.admin-login-box{background:var(--white);border-radius:var(--radius);max-width:420px;width:100%;padding:36px;box-shadow:var(--shadow-lg);animation:modalIn .22s ease}
+.admin-login-box h2{font-family:var(--font-head);font-size:22px;color:var(--navy);margin-bottom:6px}
+.admin-login-box p{font-size:13px;color:var(--gray-400);margin-bottom:24px}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.form-group label{font-size:13px;font-weight:600;color:var(--navy)}
+.form-group input,.form-group select,.form-group textarea{padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:14px;font-family:var(--font-body);outline:none;transition:border-color var(--tr);background:var(--gray-50)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--red);background:var(--white)}
+.form-group textarea{resize:vertical;min-height:90px}
+.err-msg{font-size:12.5px;color:var(--red);display:none;margin-bottom:10px}
+.succ-msg{font-size:12.5px;color:#16a34a;display:none;margin-bottom:10px;font-weight:600}
+.btn-primary{background:var(--red);color:#fff;padding:11px 28px;border-radius:var(--radius);font-size:14px;font-weight:bold;transition:background var(--tr);width:100%}
+.btn-primary:hover{background:var(--red-dark)}
+.btn-primary:disabled{background:var(--gray-400);cursor:not-allowed}
+.btn-text{font-size:13px;color:var(--gray-400);transition:color var(--tr);margin-top:12px;display:inline-block}
+.btn-text:hover{color:var(--navy)}
+
+/* ============================================================
+   ADMIN PANEL (SLIDE IN FROM RIGHT)
+   ============================================================ */
+#admin-panel{position:fixed;top:0;right:-100%;width:520px;max-width:100vw;height:100vh;background:var(--white);z-index:9200;box-shadow:-4px 0 24px rgba(0,0,0,.15);overflow-y:auto;transition:right .32s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+#admin-panel.open{right:0}
+#admin-panel-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9190}
+#admin-panel-overlay.open{display:block}
+.admin-panel-header{background:var(--navy);color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.admin-panel-header h2{font-family:var(--font-head);font-size:18px}
+.admin-panel-close{width:32px;height:32px;background:rgba(255,255,255,.1);border-radius:50%;font-size:18px;color:#fff;display:flex;align-items:center;justify-content:center;transition:background var(--tr)}
+.admin-panel-close:hover{background:rgba(255,255,255,.2)}
+.admin-panel-tabs{display:flex;border-bottom:2px solid var(--gray-200);background:var(--gray-50);flex-shrink:0}
+.admin-tab{flex:1;padding:13px;font-size:14px;font-weight:600;color:var(--gray-400);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all var(--tr)}
+.admin-tab.active{color:var(--red);border-bottom-color:var(--red)}
+.admin-panel-body{padding:22px;flex:1}
+
+/* PUBLISH FORM */
+.form-row{display:flex;gap:14px;flex-wrap:wrap}
+.form-row .form-group{flex:1;min-width:200px}
+.image-upload-area{border:2px dashed var(--gray-400);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:border-color var(--tr),background var(--tr);background:var(--gray-50)}
+.image-upload-area:hover{border-color:var(--red);background:#fff5f5}
+.image-upload-area .upload-icon{font-size:30px;margin-bottom:8px}
+.image-upload-area p{font-size:13px;color:var(--gray-400);margin-top:4px}
+#upload-preview{max-height:150px;width:auto;margin:12px auto 0;border-radius:var(--radius);display:none}
+#cloudinary-status{font-size:12px;margin-top:6px;display:block}
+#upload-progress{display:none;margin-top:6px}
+#upload-progress-bar{height:4px;background:var(--gray-200);border-radius:2px;overflow:hidden;margin-top:5px}
+#upload-progress-fill{height:100%;background:var(--red);width:0;transition:width .3s}
+.compress-badge{display:inline-block;background:#dcfce7;color:#15803d;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px}
+.pub-btn-row{display:flex;gap:10px;margin-top:16px;align-items:center;flex-wrap:wrap}
+.pub-btn-row .btn-primary{width:auto;flex-shrink:0}
+.btn-secondary{background:var(--navy);color:#fff;padding:11px 22px;border-radius:var(--radius);font-size:13px;font-weight:600;transition:background var(--tr)}
+.btn-secondary:hover{background:#0d0d2e}
+
+/* MANAGE TAB */
+.manage-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray-200);align-items:flex-start}
+.manage-item:last-child{border-bottom:none}
+.manage-info{flex:1;min-width:0}
+.manage-title{font-size:13.5px;font-weight:600;color:var(--navy);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px}
+.manage-meta{font-size:11px;color:var(--gray-400)}
+.manage-delete{background:#fff0f0;color:var(--red);border-radius:var(--radius);padding:6px 12px;font-size:12px;font-weight:600;border:1px solid #fcc;transition:all var(--tr);flex-shrink:0}
+.manage-delete:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.manage-empty{text-align:center;padding:40px 20px;color:var(--gray-400);font-size:14px}
+
+/* Admin logged in indicator (top bar) */
+#admin-live-badge{display:none;background:#22c55e;color:#fff;font-size:11px;font-weight:600;padding:2px 10px;border-radius:10px;align-items:center;gap:4px}
+#admin-live-badge.show{display:inline-flex}
+
+/* ============================================================
+   SETUP GUIDE MODAL
+   ============================================================ */
+#setup-modal{display:none;position:fixed;inset:0;z-index:9800;background:rgba(0,0,0,.8);align-items:center;justify-content:center;padding:16px}
+#setup-modal.open{display:flex}
+.setup-box{background:var(--white);border-radius:var(--radius);max-width:640px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modalIn .22s ease}
+.setup-header{background:linear-gradient(135deg,var(--navy),#2A2A5E);color:#fff;padding:28px 28px 22px;border-radius:var(--radius) var(--radius) 0 0}
+.setup-header h2{font-family:var(--font-head);font-size:22px;margin-bottom:6px}
+.setup-header p{font-size:13px;color:rgba(255,255,255,.75)}
+.setup-body{padding:24px 28px 28px}
+.setup-step{display:flex;gap:14px;margin-bottom:22px}
+.setup-num{width:30px;height:30px;background:var(--red);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;flex-shrink:0;margin-top:2px}
+.setup-step-content h3{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.setup-step-content p,.setup-step-content li{font-size:13px;color:var(--gray-600);line-height:1.7}
+.setup-step-content ul{padding-left:16px;margin-top:4px}
+.setup-step-content code{background:var(--gray-100);padding:1px 6px;border-radius:3px;font-size:12px;font-family:monospace;color:var(--red)}
+.setup-step-content a{color:var(--red);font-weight:600;text-decoration:underline}
+.setup-divider{height:1px;background:var(--gray-200);margin:10px 0 22px}
+.btn-setup-close{background:var(--navy);color:#fff;padding:11px 28px;border-radius:var(--radius);font-size:14px;font-weight:bold;transition:background var(--tr)}
+.btn-setup-close:hover{background:#0d0d2e}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+#site-footer{background:var(--navy);color:#ccc;margin-top:60px}
+.footer-inner{max-width:1280px;margin:0 auto;padding:42px 20px 22px}
+.footer-grid{display:flex;flex-wrap:wrap;gap:32px;margin-bottom:36px}
+.footer-col{flex:1;min-width:180px}
+.footer-col h4{color:#fff;font-size:14px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.1);text-transform:uppercase;letter-spacing:.5px}
+.footer-col ul{list-style:none}
+.footer-col ul li{margin-bottom:8px}
+.footer-col ul li a{color:#aaa;font-size:13px;transition:all var(--tr)}
+.footer-col ul li a:hover{color:#fff;padding-left:4px}
+.footer-col p{font-size:13px;line-height:1.7;color:#aaa}
+.footer-logo{font-family:var(--font-head);font-size:20px;color:#fff;margin-bottom:10px}
+.footer-logo span{color:var(--red)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:12px;color:#666}
+.admin-footer-link{color:#444;font-size:11px;transition:color var(--tr)}
+.admin-footer-link:hover{color:#888}
+
+/* ============================================================
+   FLOATING ADMIN FAB (when logged in)
+   ============================================================ */
+#admin-fab{display:none;position:fixed;bottom:28px;right:28px;z-index:700;background:var(--navy);color:#fff;width:56px;height:56px;border-radius:50%;box-shadow:var(--shadow-lg);font-size:22px;align-items:center;justify-content:center;transition:all var(--tr)}
+#admin-fab.show{display:flex}
+#admin-fab:hover{background:var(--red);transform:scale(1.08)}
+
+/* ============================================================
+   TOAST NOTIFICATIONS
+   ============================================================ */
+#toast-container{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--navy);color:#fff;padding:12px 22px;border-radius:var(--radius);font-size:13px;font-weight:600;box-shadow:var(--shadow-md);animation:toastIn .3s ease;min-width:220px;text-align:center}
+.toast.success{background:#16a34a}
+.toast.error{background:var(--red)}
+.toast.warning{background:var(--orange)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0}}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:900px){
+  #content-sidebar{flex-direction:column}
+  #sidebar{width:100%}
+  .hero-card img{height:320px}
+  .hero-title{font-size:21px}
+}
+@media(max-width:600px){
+  .header-inner{height:auto;padding:10px 14px;flex-wrap:wrap}
+  .search-wrap{order:3;max-width:100%;flex:0 0 100%}
+  #hamburger{display:flex}
+  #main-nav .nav-inner{flex-direction:column;align-items:stretch;padding:0}
+  #nav-links{display:none;flex-direction:column}
+  #nav-links.open{display:flex}
+  #nav-links li a{padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.07)}
+  #nav-links li a::after{display:none}
+  .hero-card img{height:220px}
+  .hero-title{font-size:17px}
+  .hero-overlay,.hero-overlay-text{padding:20px 18px}
+  .news-card{flex:1 1 100%;min-width:100%}
+  #page-wrap{padding:16px}
+  .modal-body{padding:18px}
+  .modal-img{height:180px}
+  #admin-panel{width:100vw}
+  .logo-text{font-size:18px}
+}
+@media(min-width:601px) and (max-width:900px){
+  .news-card{flex:1 1 calc(50% - 8px);min-width:calc(50% - 8px)}
+}
+@media(min-width:901px){
+  .news-card{flex:1 1 calc(33.333% - 11px)}
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+@media print{
+  #site-header,#main-nav,#breaking-bar,#sidebar,#site-footer,
+  #admin-panel,#admin-fab,.modal-share-row,.modal-close,#top-bar{display:none!important}
+  .modal-box{box-shadow:none;max-height:none;overflow:visible}
+  #news-modal{position:static;background:none;padding:0;display:block}
+  body{background:#fff;font-size:12pt}
+  .modal-img{height:200px}
+}
+</style>
+</head>
+<body>
+
+<!-- ====== PAGE LOADER ====== -->
+<div id="page-loader">
+  <div class="loader-logo">தமிழ் <span>மீடியா</span></div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+  <p style="font-size:12px;color:#aaa">செய்திகளை ஏற்றுகிறது...</p>
+</div>
+
+<!-- ====== TOAST CONTAINER ====== -->
+<div id="toast-container"></div>
+
+<!-- ====== TOP BAR ====== -->
+<div id="top-bar">
+  <span><span class="live-dot"></span><span id="current-date">தேதி ஏற்றப்படுகிறது...</span></span>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span id="admin-live-badge">⚙ Admin Active</span>
+    <div class="top-links">
+      <a href="#about-section">பற்றி நாங்கள்</a>
+      <a href="#footer-contact">தொடர்பு</a>
+    </div>
+  </div>
+</div>
+
+<!-- ====== HEADER ====== -->
+<header id="site-header">
+  <div class="header-inner">
+    <div class="logo-wrap">
+      <div class="logo-icon">த</div>
+      <div class="logo-text">தமிழ் மீடியா<span>Tamil Media</span></div>
+    </div>
+    <div class="search-wrap">
+      <input type="text" id="search-input" placeholder="செய்தி தேடுக..." aria-label="செய்தி தேடுக"
+        onkeydown="if(event.key==='Enter')performSearch()"/>
+      <button onclick="performSearch()" aria-label="தேடு">🔍</button>
+    </div>
+    <button class="header-admin-btn" id="header-admin-btn" onclick="toggleAdminPanel()">
+      ⚙ Admin Panel
+    </button>
+    <button id="hamburger" aria-label="மெனு" onclick="toggleNav()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ====== NAV ====== -->
+<nav id="main-nav">
+  <div class="nav-inner">
+    <ul id="nav-links">
+      <li><a href="#" class="active" onclick="filterCat('all',this)">முகப்பு</a></li>
+      <li><a href="#" onclick="filterCat('தமிழ்நாடு',this)">தமிழ்நாடு</a></li>
+      <li><a href="#" onclick="filterCat('இந்தியா',this)">இந்தியா</a></li>
+      <li><a href="#" onclick="filterCat('உலகம்',this)">உலகம்</a></li>
+      <li><a href="#" onclick="filterCat('வணிகம்',this)">வணிகம்</a></li>
+      <li><a href="#" onclick="filterCat('விளையாட்டு',this)">விளையாட்டு</a></li>
+      <li><a href="#" onclick="filterCat('சினிமா',this)">சினிமா</a></li>
+      <li><a href="#" onclick="filterCat('தொழில்நுட்பம்',this)">தொழில்நுட்பம்</a></li>
+      <li><a href="#" onclick="showAdminLoginModal(event)">✍ வெளியிடு</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ====== BREAKING NEWS TICKER ====== -->
+<div id="breaking-bar">
+  <div class="breaking-label"><span style="animation:blink 1.2s infinite">●</span> முக்கிய செய்தி</div>
+  <div class="ticker-wrap"><div class="ticker-content" id="ticker-content">
+    <span class="ticker-item">செய்திகளை ஏற்றுகிறது...</span>
+  </div></div>
+</div>
+
+<!-- ====== MAIN PAGE WRAP ====== -->
+<div id="page-wrap">
+
+  <!-- Search Results -->
+  <section id="search-results-wrap">
+    <h2>🔍 தேடல்: "<span id="search-label"></span>"
+      <button id="close-search" onclick="clearSearch()" title="மூடு">✕</button>
+    </h2>
+    <div id="search-results-grid" class="news-grid"></div>
+  </section>
+
+  <!-- Category Pills -->
+  <div id="cat-pills">
+    <button class="cat-pill active" onclick="filterCat('all',this)">🏠 அனைத்தும்</button>
+    <button class="cat-pill" onclick="filterCat('தமிழ்நாடு',this)">🏛️ தமிழ்நாடு</button>
+    <button class="cat-pill" onclick="filterCat('இந்தியா',this)">🇮🇳 இந்தியா</button>
+    <button class="cat-pill" onclick="filterCat('உலகம்',this)">🌍 உலகம்</button>
+    <button class="cat-pill" onclick="filterCat('வணிகம்',this)">💼 வணிகம்</button>
+    <button class="cat-pill" onclick="filterCat('விளையாட்டு',this)">⚽ விளையாட்டு</button>
+    <button class="cat-pill" onclick="filterCat('சினிமா',this)">🎬 சினிமா</button>
+    <button class="cat-pill" onclick="filterCat('தொழில்நுட்பம்',this)">💻 தொழில்நுட்பம்</button>
+  </div>
+
+  <!-- Hero Section -->
+  <section id="hero-section"></section>
+
+  <!-- Content + Sidebar -->
+  <div id="content-sidebar">
+    <main id="main-content"></main>
+    <aside id="sidebar">
+      <div class="sidebar-box">
+        <div class="sidebar-title">🔥 பிரபல செய்திகள்</div>
+        <div id="trending-list"><div style="color:var(--gray-400);font-size:13px;padding:10px 0">ஏற்றுகிறது...</div></div>
+      </div>
+      <div class="newsletter-box">
+        <h3>📧 செய்திகளை பெறுங்கள்</h3>
+        <p>தினசரி செய்திகள் உங்கள் மின்னஞ்சலில் பெறுங்கள்</p>
+        <input type="email" id="nl-email" placeholder="உங்கள் மின்னஞ்சல்..."/>
+        <button onclick="subscribeNL()">சந்தா செலுத்துங்கள்</button>
+        <div id="nl-success">✅ வெற்றிகரமாக பதிவாகியுள்ளது!</div>
+      </div>
+      <div class="ad-box" style="margin-top:22px">
+        <div class="ad-box-icon">📢</div>
+        <strong>விளம்பர இடம்</strong>
+        <span style="font-size:11px">Advertisement Space</span>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ====== FOOTER ====== -->
+<footer id="site-footer">
+  <div class="footer-inner">
+    <div class="ad-box" style="margin-bottom:32px;min-height:70px;flex-direction:row;gap:12px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)">
+      <div class="ad-box-icon">📢</div>
+      <span>விளம்பர இடம் — Advertisement Space (Footer)</span>
+    </div>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="footer-logo">தமிழ் <span>மீடியா</span></div>
+        <p>தமிழ்நாட்டின் முன்னணி டிஜிட்டல் செய்தி தளம். உண்மையான செய்திகள், விரைவான புதுப்பிப்புகள்.</p>
+      </div>
+      <div class="footer-col">
+        <h4>விரைவு இணைப்புகள்</h4>
+        <ul>
+          <li><a href="#" onclick="filterCat('all')">முகப்பு</a></li>
+          <li><a href="#" id="about-section">பற்றி நாங்கள்</a></li>
+          <li><a href="#footer-contact">தொடர்பு</a></li>
+          <li><a href="#">தனியுரிமை கொள்கை</a></li>
+          <li><a href="#">விளம்பரம்</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>வகைகள்</h4>
+        <ul>
+          <li><a href="#" onclick="filterCat('தமிழ்நாடு')">தமிழ்நாடு</a></li>
+          <li><a href="#" onclick="filterCat('இந்தியா')">இந்தியா</a></li>
+          <li><a href="#" onclick="filterCat('உலகம்')">உலகம்</a></li>
+          <li><a href="#" onclick="filterCat('வணிகம்')">வணிகம்</a></li>
+          <li><a href="#" onclick="filterCat('விளையாட்டு')">விளையாட்டு</a></li>
+          <li><a href="#" onclick="filterCat('சினிமா')">சினிமா</a></li>
+          <li><a href="#" onclick="filterCat('தொழில்நுட்பம்')">தொழில்நுட்பம்</a></li>
+        </ul>
+      </div>
+      <div class="footer-col" id="footer-contact">
+        <h4>தொடர்பு</h4>
+        <ul>
+          <li><a href="mailto:info@tamilmedia.in">info@tamilmedia.in</a></li>
+          <li><a href="#">+91 98765 43210</a></li>
+          <li><a href="#">சென்னை, தமிழ்நாடு</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 தமிழ் மீடியா. அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை. | Tamil Media — All Rights Reserved.</p>
+      <a href="#" class="admin-footer-link" onclick="showAdminLoginModal(event)">Admin</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ====== ARTICLE MODAL ====== -->
+<div id="news-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div id="modal-img-wrap"></div>
+    <div class="modal-body">
+      <div class="modal-header-row">
+        <span id="modal-badge" class="modal-badge cat-badge"></span>
+        <button class="modal-close" onclick="closeModal()" aria-label="மூடு">✕</button>
+      </div>
+      <h2 id="modal-title" class="modal-title"></h2>
+      <div id="modal-meta" class="modal-meta"></div>
+      <div id="modal-content-text" class="modal-content-text"></div>
+      <div class="modal-share-row">
+        <button class="modal-share-btn share-wa" onclick="shareWA()">📱 WhatsApp-ல் பகிர்</button>
+        <button class="modal-share-btn share-copy" onclick="copyLink()">🔗 இணைப்பை நகலெடு</button>
+        <button class="modal-share-btn share-print" onclick="window.print()">🖨️ அச்சிடு</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== ADMIN LOGIN MODAL ====== -->
+<div id="admin-login-modal" onclick="if(event.target===this)closeAdminModal()">
+  <div class="admin-login-box">
+    <h2>🔐 Admin உள்நுழைவு</h2>
+    <p>செய்தி வெளியிட admin கடவுச்சொல் தேவை.</p>
+    <div class="form-group">
+      <label>Admin பயனர் பெயர்</label>
+      <input type="text" id="admin-uname" placeholder="admin username..." autocomplete="off"
+        onkeydown="if(event.key==='Enter')doAdminLogin()"/>
+    </div>
+    <div class="form-group">
+      <label>கடவுச்சொல்</label>
+      <input type="password" id="admin-pword" placeholder="password..."
+        onkeydown="if(event.key==='Enter')doAdminLogin()"/>
+    </div>
+    <div class="err-msg" id="admin-err"></div>
+    <button class="btn-primary" onclick="doAdminLogin()">உள்நுழைவு →</button>
+    <br/>
+    <button class="btn-text" onclick="closeAdminModal()">← திரும்பு</button>
+  </div>
+</div>
+
+<!-- ====== ADMIN PANEL (SLIDE-IN) ====== -->
+<div id="admin-panel-overlay" onclick="closeAdminPanel()"></div>
+<div id="admin-panel">
+  <div class="admin-panel-header">
+    <div>
+      <h2>⚙ Admin Panel</h2>
+      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px">தமிழ் மீடியா நிர்வாகி</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="doAdminLogout()" style="background:rgba(255,255,255,.1);color:#fff;padding:7px 14px;border-radius:var(--radius);font-size:12px;font-weight:600">வெளியேறு</button>
+      <button class="admin-panel-close" onclick="closeAdminPanel()">✕</button>
+    </div>
+  </div>
+  <div class="admin-panel-tabs">
+    <button class="admin-tab active" id="tab-publish" onclick="switchAdminTab('publish')">✍ செய்தி வெளியிடு</button>
+    <button class="admin-tab" id="tab-manage" onclick="switchAdminTab('manage')">📋 செய்திகளை நிர்வகி</button>
+  </div>
+
+  <!-- PUBLISH TAB -->
+  <div class="admin-panel-body" id="panel-publish">
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>செய்தி தலைப்பு *</label>
+        <input type="text" id="pub-title" placeholder="செய்தி தலைப்பை உள்ளிடவும்..."/>
+      </div>
+      <div class="form-group">
+        <label>வகை *</label>
+        <select id="pub-cat">
+          <option value="">வகை தேர்வு</option>
+          <option>தமிழ்நாடு</option>
+          <option>இந்தியா</option>
+          <option>உலகம்</option>
+          <option>வணிகம்</option>
+          <option>விளையாட்டு</option>
+          <option>சினிமா</option>
+          <option>தொழில்நுட்பம்</option>
+          <option>அரசியல்</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>செய்தி தேதி *</label>
+        <input type="date" id="pub-date"/>
+      </div>
+      <div class="form-group">
+        <label>செய்தி நேரம்</label>
+        <input type="time" id="pub-time"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>சுருக்க விவரம் * <span style="font-size:11px;color:var(--gray-400)">(அட்டையில் காட்டப்படும்)</span></label>
+      <textarea id="pub-desc" rows="3" placeholder="செய்தி சுருக்கம் (2-3 வரிகள்)..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>முழு செய்தி உள்ளடக்கம் *</label>
+      <textarea id="pub-content" rows="7" placeholder="முழு செய்தியை இங்கே எழுதவும்..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>செய்தி படம் <span style="font-size:11px;color:var(--gray-400)">(விருப்பமானது – Cloudinary மூலம் இலவச பதிவேற்றம்)</span></label>
+      <div class="image-upload-area" onclick="document.getElementById('img-file').click()">
+        <div class="upload-icon">📷</div>
+        <p>படத்தை தேர்வு செய்ய இங்கே கிளிக் செய்யவும்</p>
+        <p style="font-size:11px;margin-top:4px">PNG, JPG, WEBP — Max 10MB <span class="compress-badge">Auto Compress ✓</span></p>
+        <input type="file" id="img-file" accept="image/*" style="display:none" onchange="handleImageFile(event)"/>
+        <img id="upload-preview" alt="Preview"/>
+      </div>
+      <div id="upload-progress">
+        <span id="cloudinary-status"></span>
+        <div id="upload-progress-bar"><div id="upload-progress-fill"></div></div>
+      </div>
+    </div>
+    <div class="pub-btn-row">
+      <button class="btn-primary" id="pub-submit" onclick="publishNews()" style="width:auto">🚀 வெளியிடு</button>
+      <button class="btn-secondary" onclick="resetPublishForm()">↺ மீட்டமை</button>
+    </div>
+    <div class="succ-msg" id="pub-msg" style="margin-top:12px"></div>
+    <div class="err-msg" id="pub-err" style="margin-top:8px"></div>
+  </div>
+
+  <!-- MANAGE TAB -->
+  <div class="admin-panel-body" id="panel-manage" style="display:none">
+    <div id="manage-list"></div>
+  </div>
+</div>
+
+<!-- ====== FLOATING ADMIN FAB ====== -->
+<button id="admin-fab" title="Admin Panel திற" onclick="toggleAdminPanel()">⚙</button>
+
+<!-- ====== SETUP GUIDE MODAL ====== -->
+<div id="setup-modal">
+  <div class="setup-box">
+    <div class="setup-header">
+      <h2>🚀 Firebase அமைவு வழிகாட்டி</h2>
+      <p>இலவச Firebase Firestore மூலம் உங்கள் செய்திகளை சேமிக்கவும். இது 100% இலவசம் — கிரெடிட் கார்டு தேவையில்லை!</p>
+    </div>
+    <div class="setup-body">
+      <div class="setup-step">
+        <div class="setup-num">1</div>
+        <div class="setup-step-content">
+          <h3>Firebase திட்டம் உருவாக்கவும்</h3>
+          <p>→ <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> திறக்கவும்<br/>
+          → "Create a project" கிளிக் செய்யவும் → திட்டத்திற்கு பெயர் கொடுக்கவும்<br/>
+          → Google Analytics: "Skip" செய்யவும் → திட்டம் தயார்!</p>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-num">2</div>
+        <div class="setup-step-content">
+          <h3>Web App சேர்க்கவும் & Config எடுக்கவும்</h3>
+          <p>→ Dashboard-ல் "<code>&lt;/&gt;</code>" Web icon கிளிக் செய்யவும்<br/>
+          → App nickname கொடுத்து "Register app" கிளிக் செய்யவும்<br/>
+          → <code>firebaseConfig</code> object-ஐ நகலெடுக்கவும்<br/>
+          → இந்த HTML கோப்பில் <code>FIREBASE_CONFIG</code>-ல் பேஸ்ட் செய்யவும்</p>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-num">3</div>
+        <div class="setup-step-content">
+          <h3>Firestore Database செயல்படுத்தவும்</h3>
+          <p>→ Left menu: "Build" → "Firestore Database"<br/>
+          → "Create database" → "Start in <strong>test mode</strong>" தேர்வு செய்யவும்<br/>
+          → உங்கள் நிலை (region) தேர்வு செய்யவும் → "Enable" கிளிக்<br/>
+          → <strong>Rules tab:</strong> <code>allow read, write: if true;</code> என்று மாற்றி "Publish" செய்யவும்</p>
+        </div>
+      </div>
+      <div class="setup-divider"></div>
+      <div class="setup-step">
+        <div class="setup-num">4</div>
+        <div class="setup-step-content">
+          <h3>Cloudinary அமைவு (படம் சேமிக்க — இலவசம்)</h3>
+          <p>→ <a href="https://cloudinary.com" target="_blank">cloudinary.com</a> இல் இலவச கணக்கு திறக்கவும்<br/>
+          → Dashboard-ல் உங்கள் <strong>Cloud Name</strong> எடுக்கவும்<br/>
+          → Settings → Upload → "Add upload preset" → Unsigned → Save<br/>
+          → <strong>Preset name</strong>-ஐ நகலெடுக்கவும்<br/>
+          → HTML கோப்பில் <code>CLOUDINARY_CLOUD</code> & <code>CLOUDINARY_PRESET</code> மாற்றவும்</p>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-num">5</div>
+        <div class="setup-step-content">
+          <h3>Admin கடவுச்சொல் மாற்றவும் (முக்கியம்!)</h3>
+          <p>HTML கோப்பில் மேலே JavaScript பகுதியில்:<br/>
+          <code>const ADMIN_ID = 'admin';</code> ← உங்கள் பயனர் பெயர்<br/>
+          <code>const ADMIN_PASS = 'TamilMedia@2026';</code> ← வலுவான கடவுச்சொல்</p>
+        </div>
+      </div>
+      <button class="btn-setup-close" onclick="closeSetup()" style="width:100%;margin-top:8px">✅ புரிந்தது, தொடங்குவோம்!</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ██████╗  ██████╗ ███╗   ██╗███████╗██╗ ██████╗ 
+   ██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝ 
+   ██║     ██║   ██║██╔██╗ ██║█████╗  ██║██║  ███╗
+   ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║
+   ╚██████╗╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝
+    ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝ 
+   
+   தமிழ் மீடியா — Tamil Media
+   ============================================================
+   
+   ⚙ CONFIGURATION — Change these 5 values to go live:
+   ============================================================ */
+
+const ADMIN_ID   = 'admin';            // ← Change to your admin username
+const ADMIN_PASS = 'tamilmedia';  // ← Change to a strong password!
+
+/* Firebase Firestore Config
+   Get from: console.firebase.google.com → Your project → Web app → Config */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCJNFgsf8IQVHRX_gWINCLmqO5Uv0uqAm4",
+  authDomain: "tamil-news-ff3fe.firebaseapp.com",
+  projectId: "tamil-news-ff3fe",
+  storageBucket: "tamil-news-ff3fe.firebasestorage.app",
+  messagingSenderId: "1057524255422",
+  appId: "1:1057524255422:web:44b31618c2f7ea4314ecef",
+};
+
+/* Cloudinary — for free image hosting with auto compression
+   Get from: cloudinary.com → Dashboard (cloud name) → Settings → Upload (preset) */
+const CLOUDINARY_CLOUD = 'dbglf4ieo';
+const CLOUDINARY_PRESET = 'Tamilnews12345';
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let db             = null;
+let allNews        = [];
+let isAdmin        = false;
+let isDbReady      = false;
+let uploadedImgUrl = '';
+let activeCategory = 'all';
+let currentDocId   = '';   // for share feature
+
+/* ============================================================
+   CATEGORY MAPPINGS
+   ============================================================ */
+const CAT_CSS = {
+  'தமிழ்நாடு':'tamilnadu','இந்தியா':'india','உலகம்':'world',
+  'வணிகம்':'business','விளையாட்டு':'sports','சினிமா':'cinema',
+  'தொழில்நுட்பம்':'technology','அரசியல்':'politics'
+};
+const CATS = ['தமிழ்நாடு','இந்தியா','உலகம்','வணிகம்','விளையாட்டு','சினிமா','தொழில்நுட்பம்'];
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  updateTopDate();
+  checkAdminSession();
+  initFirebase();
+  setTodayDateDefault();
+});
+
+function initFirebase() {
+  if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+    hideLoader();
+    showSetupModal();
+    renderEmptyState();
+    return;
+  }
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    isDbReady = true;
+    loadNews();
+  } catch (e) {
+    hideLoader();
+    showToast('Firebase பிழை: ' + e.message, 'error');
+    renderEmptyState();
+  }
+}
+
+function setTodayDateDefault() {
+  const d = document.getElementById('pub-date');
+  if (d) d.value = new Date().toISOString().split('T')[0];
+  const t = document.getElementById('pub-time');
+  if (t) {
+    const now = new Date();
+    t.value = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  }
+}
+
+/* ============================================================
+   NEWS LOADING FROM FIREBASE
+   ============================================================ */
+async function loadNews() {
+  try {
+    const snap = await db.collection('news').orderBy('publishedAt','desc').get();
+    allNews = snap.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
+    renderAll();
+  } catch (e) {
+    showToast('செய்திகளை ஏற்றுவதில் பிழை: ' + e.message, 'error');
+    renderEmptyState();
+  } finally {
+    hideLoader();
+  }
+}
+
+/* ============================================================
+   RENDER ENGINE
+   ============================================================ */
+function renderAll() {
+  const news = activeCategory === 'all'
+    ? allNews
+    : allNews.filter(n => n.category === activeCategory);
+
+  renderTicker(allNews.slice(0, 8));
+  renderHero(news);
+  renderNewsGrid(news);
+  renderTrending(allNews.slice(0, 6));
+
+  if (isAdmin) renderManageList();
+}
+
+/* TICKER */
+function renderTicker(news) {
+  if (!news.length) {
+    document.getElementById('ticker-content').innerHTML =
+      '<span class="ticker-item">இன்னும் செய்திகள் வரவில்லை...</span>';
+    return;
+  }
+  const items = news.map(n =>
+    `<span class="ticker-item">● ${n.title}</span><span class="ticker-sep"> ◆ </span>`
+  ).join('');
+  document.getElementById('ticker-content').innerHTML = items + items; // double for loop
+}
+
+/* HERO */
+function renderHero(news) {
+  const hero = document.getElementById('hero-section');
+  if (!news.length) { hero.innerHTML = ''; return; }
+
+  const item = news[0];
+  const cls  = CAT_CSS[item.category] || 'tamilnadu';
+  const dt   = formatDT(item.newsDate, item.newsTime);
+
+  if (item.image) {
+    hero.innerHTML = `
+      <div class="hero-card" onclick="openModal('${item.docId}')">
+        <img src="${escHtml(item.image)}" alt="${escHtml(item.title)}" loading="lazy"/>
+        <div class="hero-overlay">
+          <span class="hero-badge">${escHtml(item.category)}</span>
+          <h1 class="hero-title">${escHtml(item.title)}</h1>
+          <p class="hero-desc">${escHtml(item.description)}</p>
+          <div class="hero-meta-bar">
+            <span>📅 ${dt}</span>
+            <span>⏱ ${readTime(item.content)} நிமிட வாசிப்பு</span>
+          </div>
+        </div>
+      </div>`;
+  } else {
+    hero.innerHTML = `
+      <div class="hero-card hero-no-img" onclick="openModal('${item.docId}')">
+        <div class="hero-overlay-text">
+          <span class="hero-badge">${escHtml(item.category)}</span>
+          <h1 class="hero-title">${escHtml(item.title)}</h1>
+          <p class="hero-desc">${escHtml(item.description)}</p>
+          <div class="hero-meta-bar">
+            <span>📅 ${dt}</span>
+            <span>⏱ ${readTime(item.content)} நிமிட வாசிப்பு</span>
+          </div>
+        </div>
+      </div>`;
+  }
+}
+
+/* NEWS GRID */
+function renderNewsGrid(news) {
+  const main = document.getElementById('main-content');
+
+  if (!news.length) {
+    main.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📰</div>
+        <h3>இன்னும் செய்திகள் இல்லை</h3>
+        <p>Admin மூலம் முதல் செய்தியை வெளியிடவும்</p>
+        ${!isDbReady ? `<a href="#" class="setup-link" onclick="showSetupModal()">→ Firebase அமைக்கவும்</a>` : ''}
+      </div>`;
+    return;
+  }
+
+  /* Skip hero (index 0), render rest as cards */
+  const gridNews = news.length > 1 ? news.slice(1) : [];
+  const count    = allNews.length;
+
+  main.innerHTML = `
+    <div class="news-section">
+      <div class="section-title">
+        <span class="dot"></span>
+        சமீபத்திய செய்திகள்
+        <span class="news-count-badge">${count} செய்திகள்</span>
+      </div>
+      <div class="news-grid">
+        ${gridNews.length ? gridNews.map(renderCard).join('') : '<div style="color:var(--gray-400);font-size:14px;padding:20px 0">இந்த வகையில் மேலும் செய்திகள் இல்லை.</div>'}
+      </div>
+    </div>`;
+}
+
+function renderCard(item) {
+  const cls = CAT_CSS[item.category] || 'tamilnadu';
+  const dt  = formatDT(item.newsDate, item.newsTime);
+  const del = isAdmin
+    ? `<button class="delete-card-btn" onclick="deleteNews(event,'${item.docId}')" title="நீக்கு">🗑</button>`
+    : '';
+  return `
+    <div class="news-card nc-${cls}" onclick="openModal('${item.docId}')">
+      <div class="news-card-body">
+        <div class="card-top-row">
+          <span class="cat-badge cb-${cls}">${escHtml(item.category)}</span>
+          ${del}
+        </div>
+        <h3 class="news-card-title">${escHtml(item.title)}</h3>
+        <p class="news-card-desc">${escHtml(item.description)}</p>
+        <div class="news-card-footer">
+          <span class="news-card-date">📅 ${dt}</span>
+          <div class="card-actions">
+            <button class="share-card-btn" onclick="quickShare(event,'${item.docId}')" title="பகிர்">📤</button>
+            <span class="read-more">மேலும் படிக்க →</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* TRENDING SIDEBAR */
+function renderTrending(news) {
+  const el = document.getElementById('trending-list');
+  if (!news.length) { el.innerHTML = '<div style="color:var(--gray-400);font-size:13px;padding:8px 0">இன்னும் செய்திகள் இல்லை.</div>'; return; }
+  el.innerHTML = news.map((item,i) => `
+    <div class="trending-item" onclick="openModal('${item.docId}')">
+      <div class="trending-num">${String(i+1).padStart(2,'0')}</div>
+      <div>
+        <div class="trending-title">${escHtml(item.title)}</div>
+        <div class="trending-date">📅 ${item.newsDate || ''}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* MANAGE LIST (admin) */
+function renderManageList() {
+  const el = document.getElementById('manage-list');
+  if (!allNews.length) {
+    el.innerHTML = '<div class="manage-empty">📰 இன்னும் செய்திகள் இல்லை.</div>';
+    return;
+  }
+  el.innerHTML = allNews.map(item => `
+    <div class="manage-item">
+      <div class="manage-info">
+        <div class="manage-title">${escHtml(item.title)}</div>
+        <div class="manage-meta">${escHtml(item.category)} · 📅 ${item.newsDate || ''} ${item.newsTime ? '⏰ '+item.newsTime : ''}</div>
+      </div>
+      <button class="manage-delete" onclick="deleteNews(event,'${item.docId}')">🗑 நீக்கு</button>
+    </div>`).join('');
+}
+
+/* Empty state when no Firebase */
+function renderEmptyState() {
+  document.getElementById('hero-section').innerHTML = '';
+  document.getElementById('main-content').innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">⚙️</div>
+      <h3>Firebase அமைக்கப்படவில்லை</h3>
+      <p>செய்திகளை சேமிக்க Firebase Firestore அமைக்கவும்</p>
+      <a href="#" class="setup-link" onclick="showSetupModal()">→ அமைவு வழிகாட்டி காண்க</a>
+    </div>`;
+  renderTicker([]);
+  document.getElementById('trending-list').innerHTML =
+    '<div style="color:var(--gray-400);font-size:13px;padding:8px 0">அமைக்கப்படவில்லை.</div>';
+}
+
+/* ============================================================
+   ARTICLE MODAL
+   ============================================================ */
+function openModal(docId) {
+  const item = allNews.find(n => n.docId === docId);
+  if (!item) return;
+  currentDocId = docId;
+
+  const cls = CAT_CSS[item.category] || 'tamilnadu';
+  const dt  = formatDT(item.newsDate, item.newsTime);
+
+  document.getElementById('modal-img-wrap').innerHTML = item.image
+    ? `<img class="modal-img" src="${escHtml(item.image)}" alt="${escHtml(item.title)}" loading="lazy"/>`
+    : '';
+
+  const badge = document.getElementById('modal-badge');
+  badge.textContent = item.category;
+  badge.className = `modal-badge cat-badge cb-${cls}`;
+
+  document.getElementById('modal-title').textContent = item.title;
+  document.getElementById('modal-meta').innerHTML =
+    `📅 ${dt} &nbsp;·&nbsp; ⏱ ${readTime(item.content)} நிமிட வாசிப்பு &nbsp;·&nbsp; ✍️ Admin`;
+  document.getElementById('modal-content-text').textContent = item.content;
+
+  document.getElementById('news-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('news-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  currentDocId = '';
+}
+
+/* ============================================================
+   ADMIN AUTH
+   ============================================================ */
+function checkAdminSession() {
+  if (sessionStorage.getItem('tm_admin') === '1') {
+    isAdmin = true;
+    updateAdminUI(true);
+  }
+}
+
+function showAdminLoginModal(e) {
+  if (e) e.preventDefault();
+  if (isAdmin) { openAdminPanel(); return; }
+  document.getElementById('admin-login-modal').classList.add('open');
+  document.getElementById('admin-uname').value = '';
+  document.getElementById('admin-pword').value = '';
+  document.getElementById('admin-err').style.display = 'none';
+  setTimeout(() => document.getElementById('admin-uname').focus(), 100);
+}
+
+function closeAdminModal() {
+  document.getElementById('admin-login-modal').classList.remove('open');
+}
+
+function doAdminLogin() {
+  const u = document.getElementById('admin-uname').value.trim();
+  const p = document.getElementById('admin-pword').value;
+  const err = document.getElementById('admin-err');
+  err.style.display = 'none';
+
+  if (u === ADMIN_ID && p === ADMIN_PASS) {
+    isAdmin = true;
+    sessionStorage.setItem('tm_admin','1');
+    closeAdminModal();
+    updateAdminUI(true);
+    renderAll();
+    openAdminPanel();
+    showToast('✅ Admin உள்நுழைவு வெற்றிகரம்!', 'success');
+  } else {
+    err.textContent = '❌ பயனர் பெயர் அல்லது கடவுச்சொல் தவறானது.';
+    err.style.display = 'block';
+    document.getElementById('admin-pword').value = '';
+  }
+}
+
+function doAdminLogout() {
+  isAdmin = false;
+  sessionStorage.removeItem('tm_admin');
+  closeAdminPanel();
+  updateAdminUI(false);
+  renderAll();
+  showToast('வெளியேறியது.', 'success');
+}
+
+function updateAdminUI(on) {
+  const fab   = document.getElementById('admin-fab');
+  const hbtn  = document.getElementById('header-admin-btn');
+  const badge = document.getElementById('admin-live-badge');
+  fab.classList.toggle('show', on);
+  hbtn.classList.toggle('visible', on);
+  badge.classList.toggle('show', on);
+}
+
+/* ============================================================
+   ADMIN PANEL
+   ============================================================ */
+function openAdminPanel() {
+  document.getElementById('admin-panel').classList.add('open');
+  document.getElementById('admin-panel-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (isAdmin) renderManageList();
+}
+
+function closeAdminPanel() {
+  document.getElementById('admin-panel').classList.remove('open');
+  document.getElementById('admin-panel-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function toggleAdminPanel() {
+  if (!isAdmin) { showAdminLoginModal(null); return; }
+  const panel = document.getElementById('admin-panel');
+  panel.classList.contains('open') ? closeAdminPanel() : openAdminPanel();
+}
+
+function switchAdminTab(tab) {
+  document.getElementById('tab-publish').classList.toggle('active', tab === 'publish');
+  document.getElementById('tab-manage').classList.toggle('active', tab === 'manage');
+  document.getElementById('panel-publish').style.display = tab === 'publish' ? 'block' : 'none';
+  document.getElementById('panel-manage').style.display  = tab === 'manage'  ? 'block' : 'none';
+  if (tab === 'manage') renderManageList();
+}
+
+/* ============================================================
+   PUBLISH NEWS TO FIREBASE
+   ============================================================ */
+async function publishNews() {
+  if (!isDbReady) { showToast('Firebase முதலில் அமைக்கவும்!', 'error'); return; }
+
+  const title   = g('pub-title').value.trim();
+  const cat     = g('pub-cat').value;
+  const desc    = g('pub-desc').value.trim();
+  const content = g('pub-content').value.trim();
+  const newsDate= g('pub-date').value;
+  const newsTime= g('pub-time').value;
+  const err     = g('pub-err');
+  const msg     = g('pub-msg');
+  err.style.display = 'none';
+  msg.style.display = 'none';
+
+  if (!title || !cat || !desc || !content || !newsDate) {
+    err.textContent = '⚠️ தலைப்பு, வகை, விவரம், உள்ளடக்கம், தேதி அனைத்தும் தேவை.';
+    err.style.display = 'block';
+    return;
+  }
+
+  const btn = g('pub-submit');
+  btn.disabled = true;
+  btn.textContent = '⏳ வெளியிடுகிறது...';
+
+  try {
+    await db.collection('news').add({
+      title, category: cat, description: desc, content,
+      image: uploadedImgUrl || '',
+      newsDate, newsTime,
+      publishedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      author: 'Admin'
+    });
+
+    resetPublishForm();
+    msg.textContent = '✅ செய்தி வெற்றிகரமாக வெளியிடப்பட்டது! 🎉';
+    msg.style.display = 'block';
+    await loadNews();
+    showToast('✅ செய்தி வெளியிடப்பட்டது!', 'success');
+    switchAdminTab('manage');
+  } catch (e) {
+    err.textContent = '❌ பிழை: ' + e.message;
+    err.style.display = 'block';
+    showToast('பிழை ஏற்பட்டது', 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🚀 வெளியிடு';
+}
+
+function resetPublishForm() {
+  ['pub-title','pub-desc','pub-content'].forEach(id => { if(g(id)) g(id).value = ''; });
+  const cat = g('pub-cat'); if(cat) cat.value = '';
+  setTodayDateDefault();
+  const prev = g('upload-preview');
+  if (prev) { prev.src=''; prev.style.display='none'; }
+  g('cloudinary-status').textContent = '';
+  g('upload-progress').style.display = 'none';
+  g('upload-progress-fill').style.width = '0';
+  if (g('img-file')) g('img-file').value = '';
+  uploadedImgUrl = '';
+}
+
+/* ============================================================
+   DELETE NEWS
+   ============================================================ */
+async function deleteNews(e, docId) {
+  e.stopPropagation();
+  if (!confirm('இந்த செய்தியை நிரந்தரமாக நீக்க வேண்டுமா?')) return;
+  try {
+    await db.collection('news').doc(docId).delete();
+    allNews = allNews.filter(n => n.docId !== docId);
+    renderAll();
+    showToast('செய்தி நீக்கப்பட்டது.', 'success');
+  } catch (ex) {
+    showToast('நீக்குவதில் பிழை: ' + ex.message, 'error');
+  }
+}
+
+/* ============================================================
+   IMAGE COMPRESSION + CLOUDINARY UPLOAD
+   ============================================================ */
+async function handleImageFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  /* Immediate local preview */
+  const reader = new FileReader();
+  reader.onload = e => {
+    const p = g('upload-preview');
+    p.src = e.target.result;
+    p.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+
+  /* Compress */
+  setUploadStatus('⏳ படம் சுருக்கப்படுகிறது...','#666');
+  const originalMB = (file.size / 1024 / 1024).toFixed(2);
+
+  const compressed = await compressImage(file, 1200, 0.78);
+  const compressedMB = (compressed.size / 1024 / 1024).toFixed(2);
+
+  const saved = Math.round((1 - compressed.size / file.size) * 100);
+  const info  = `📦 ${originalMB}MB → ${compressedMB}MB (${saved}% குறைந்தது)`;
+
+  if (CLOUDINARY_CLOUD === 'YOUR_CLOUD_NAME') {
+    uploadedImgUrl = URL.createObjectURL(compressed);
+    setUploadStatus(`⚠️ Demo mode. ${info}. Cloudinary அமைத்தால் cloud-ல் சேமிக்கப்படும்.`, '#E85D04');
+    return;
+  }
+
+  uploadToCloudinary(compressed, info);
+}
+
+function compressImage(file, maxWidth, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const ratio   = Math.min(maxWidth / img.width, 1);
+      const canvas  = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => { URL.revokeObjectURL(url); resolve(blob); }, 'image/jpeg', quality);
+    };
+    img.src = url;
+  });
+}
+
+function uploadToCloudinary(blob, sizeInfo) {
+  const fill = g('upload-progress-fill');
+  g('upload-progress').style.display = 'block';
+  setUploadStatus('⏳ Cloudinary-ல் பதிவேற்றுகிறது... ' + sizeInfo, '#555');
+  fill.style.width = '5%';
+
+  const fd = new FormData();
+  fd.append('file', blob);
+  fd.append('upload_preset', CLOUDINARY_PRESET);
+  fd.append('folder', 'tamil_media');
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`);
+  xhr.upload.onprogress = e => {
+    if (e.lengthComputable) fill.style.width = Math.round(e.loaded / e.total * 90) + '%';
+  };
+  xhr.onload = () => {
+    if (xhr.status === 200) {
+      uploadedImgUrl = JSON.parse(xhr.responseText).secure_url;
+      fill.style.width = '100%';
+      setUploadStatus('✅ Cloudinary-ல் பதிவேற்றப்பட்டது! ' + sizeInfo, '#16a34a');
+    } else {
+      setUploadStatus('❌ Cloudinary பதிவேற்றம் தோல்வி. மீண்டும் முயற்சிக்கவும்.', '#CC0000');
+    }
+  };
+  xhr.onerror = () => setUploadStatus('❌ பிழை. இணைப்பை சரிபார்க்கவும்.', '#CC0000');
+  xhr.send(fd);
+}
+
+function setUploadStatus(text, color) {
+  const el = g('cloudinary-status');
+  el.textContent = text;
+  el.style.color = color;
+}
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+function performSearch() {
+  const q = g('search-input').value.trim().toLowerCase();
+  if (!q) { clearSearch(); return; }
+
+  const results = allNews.filter(n =>
+    n.title.toLowerCase().includes(q) ||
+    n.description.toLowerCase().includes(q) ||
+    n.category.toLowerCase().includes(q) ||
+    (n.content && n.content.toLowerCase().includes(q))
+  );
+
+  g('search-label').textContent = q;
+  const wrap = g('search-results-wrap');
+  wrap.style.display = 'block';
+
+  const grid = g('search-results-grid');
+  grid.innerHTML = results.length
+    ? results.map(renderCard).join('')
+    : `<div class="empty-state" style="padding:30px 20px">
+         <div class="empty-icon" style="font-size:36px">🔍</div>
+         <p>"${escHtml(q)}" க்கு எந்த செய்தியும் கிடைக்கவில்லை.</p>
+       </div>`;
+
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+
+function clearSearch() {
+  g('search-results-wrap').style.display = 'none';
+  g('search-input').value = '';
+}
+
+/* ============================================================
+   CATEGORY FILTER
+   ============================================================ */
+function filterCat(cat, el) {
+  activeCategory = cat;
+  clearSearch();
+
+  /* Update nav active links */
+  document.querySelectorAll('#nav-links li a').forEach(a => a.classList.remove('active'));
+
+  /* Update pills */
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+
+  renderAll();
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+
+/* ============================================================
+   SHARE
+   ============================================================ */
+function quickShare(e, docId) {
+  e.stopPropagation();
+  const item = allNews.find(n => n.docId === docId);
+  if (!item) return;
+  const text = `📰 ${item.title}\n\nமேலும் படிக்க: ${window.location.href}`;
+  if (navigator.share) {
+    navigator.share({ title: item.title, text: item.description, url: window.location.href });
+  } else {
+    navigator.clipboard.writeText(text).then(() => showToast('இணைப்பு நகலெடுக்கப்பட்டது!', 'success'));
+  }
+}
+
+function shareWA() {
+  const item = allNews.find(n => n.docId === currentDocId);
+  if (!item) return;
+  const text = encodeURIComponent(`📰 *${item.title}*\n\n${item.description}\n\n${window.location.href}`);
+  window.open(`https://wa.me/?text=${text}`, '_blank');
+}
+
+function copyLink() {
+  const item = allNews.find(n => n.docId === currentDocId);
+  const text = item ? `${item.title} — ${window.location.href}` : window.location.href;
+  navigator.clipboard.writeText(text).then(() => showToast('இணைப்பு நகலெடுக்கப்பட்டது! ✅', 'success'));
+}
+
+/* ============================================================
+   NEWSLETTER
+   ============================================================ */
+function subscribeNL() {
+  const v = g('nl-email').value.trim();
+  if (!v || !v.includes('@')) { showToast('சரியான மின்னஞ்சல் உள்ளிடவும்.', 'error'); return; }
+  g('nl-success').style.display = 'block';
+  g('nl-email').value = '';
+  setTimeout(() => g('nl-success').style.display = 'none', 4000);
+}
+
+/* ============================================================
+   SETUP GUIDE
+   ============================================================ */
+function showSetupModal() {
+  g('setup-modal').classList.add('open');
+}
+function closeSetup() {
+  g('setup-modal').classList.remove('open');
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function toggleNav() {
+  g('nav-links').classList.toggle('open');
+}
+
+/* ============================================================
+   LOADER
+   ============================================================ */
+function hideLoader() {
+  const l = g('page-loader');
+  l.classList.add('hide');
+  setTimeout(() => l.style.display = 'none', 450);
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function g(id) { return document.getElementById(id); }
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function formatDT(date, time) {
+  if (!date) return '—';
+  let d = date;
+  /* Convert YYYY-MM-DD to DD-MM-YYYY */
+  if (date.includes('-') && date.length === 10) {
+    const parts = date.split('-');
+    d = `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+  return time ? `${d} · ${time}` : d;
+}
+
+function readTime(content) {
+  if (!content) return '1';
+  return Math.max(1, Math.ceil(content.split(/\s+/).length / 180));
+}
+
+function showToast(msg, type = 'success') {
+  const wrap = g('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  wrap.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'toastOut .3s ease forwards';
+    setTimeout(() => wrap.removeChild(toast), 320);
+  }, 3200);
+}
+
+function updateTopDate() {
+  const days  = ['ஞாயிறு','திங்கள்','செவ்வாய்','புதன்','வியாழன்','வெள்ளி','சனி'];
+  const d     = new Date();
+  const day   = days[d.getDay()];
+  const date  = String(d.getDate()).padStart(2,'0');
+  const month = String(d.getMonth()+1).padStart(2,'0');
+  const year  = d.getFullYear();
+  g('current-date').textContent = `📅 ${day}, ${date}-${month}-${year}`;
+}
+</script>
+</body>
+</html>
